@@ -7,18 +7,17 @@ servers:
 components:
   schemas:
     UpdatePlayerRequest:
-      PlayerRequest:
-        type: object
-        properties:
-          discordId:
-            type: string
-            example: "839201456789123456"
-          uid:
-            type: string
-            example: "104582"
-          playerName:
-            type: string
-            example: "Test1"
+      type: object
+      properties:
+        discordId:
+          type: string
+          example: "839201456789123456"
+        uid:
+          type: string
+          example: "104582"
+        playerName:
+          type: string
+          example: "Test1"
     PlayerRequest:
       type: object
       properties:
@@ -89,7 +88,11 @@ paths:
       tags:
         - Player
       requestBody:
-        $ref: '#/components/schemas/UpdatePlayerRequest'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlayerRequest'
       responses:
         '200':
           description: Information of a player.
