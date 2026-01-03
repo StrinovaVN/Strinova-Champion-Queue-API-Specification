@@ -3,15 +3,69 @@ info:
   title: Strinova Champion Queue REST API Specification
   description: Strinova Champion Queue REST API Specification
 servers:
-  - url: '/api'
+  - url: '/'
 components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
-    UpdatePlayerRequest:
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "test1"
+        password:
+          type: string
+          example: "test123"
+        email:
+          type: string
+          example: "test@example.com"
+        discordId:
+          type: string
+          example: "839201456789123456"
+    UserResponse:
       type: object
       properties:
         discordId:
           type: string
           example: "839201456789123456"
+        email:
+          type: string
+          example: "test@example.com"
+        username:
+          type: string
+          example: "test1"
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "test1"
+        password:
+          type: string
+          example: "test123"
+    LoginResponse:
+      type: object
+      properties:
+        discordId:
+          type: string
+          example: "839201456789123456"
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MSIsImp0aSI6IjUzMTlmYTBkLTNhY2YtNGI1YS1iNzE3LWY1OGE2NzljNjIzNiIsImlhdCI6MTc2NzQ3NTQyNCwiZXhwIjoxNzY3NDc5MDI0fQ.zLddayiB3hthtsJcif-ikxMQ0nRikj-Q4fjv7tFxdAI"
+        username:
+          type: string
+          example: "test1"
+    UpdatePlayerRequest:
+      type: object
+      properties:
         uid:
           type: string
           example: "104582"
@@ -21,9 +75,6 @@ components:
     PlayerRequest:
       type: object
       properties:
-        discordId:
-          type: string
-          example: "839201456789123456"
         uid:
           type: string
           example: "104582"
@@ -41,9 +92,6 @@ components:
         id:
           type: integer
           example: 1
-        discordId:
-          type: string
-          example: "839201456789123456"
         uid:
           type: string
           example: "104582"
@@ -62,7 +110,8 @@ components:
         accountStatus:
           $ref: '#/components/schemas/AccountStatus'
           example: "ACTIVE"
-
+        userResponse:
+          $ref: '#/components/schemas/UserResponse'
     PlayersResponse:
       type: object
       properties:
@@ -70,10 +119,61 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PlayerResponse'
+security:
+  - apiKey: []
+
+
 paths:
-  /players:
+  /auth/register:
+    post:
+      summary: Register new user
+      tags:
+        - Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Information of the user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+  /auth/login:
+    post:
+      summary: User login
+      tags:
+        - Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+  /auth/logout:
+    post:
+      summary: User logout
+      security:
+        - apiKey: []
+          bearerAuth: []
+      tags:
+        - Authorization
+      responses:
+        '200':
+          description: OK
+  /api/players:
     get:
-      summary: Get all players
+      summary: Get all players.
       tags:
         - Player
       responses:
@@ -85,6 +185,9 @@ paths:
                 $ref: '#/components/schemas/PlayersResponse'
     put:
       summary: Update a player information
+      security:
+        - apiKey: [ ]
+          bearerAuth: [ ]
       tags:
         - Player
       requestBody:
@@ -102,6 +205,9 @@ paths:
                 $ref: '#/components/schemas/PlayerResponse'
     post:
       summary: Register new player
+      security:
+        - apiKey: [ ]
+          bearerAuth: [ ]
       tags:
         - Player
       requestBody:
@@ -117,7 +223,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PlayerResponse'
-  /players/{discordId}:
+  /api/players/{discordId}:
     get:
       summary: Get a player
       tags:
@@ -137,7 +243,7 @@ paths:
                 $ref: '#/components/schemas/PlayerResponse'
         '404':
           description: Player not found.
-  /players/ban/{discordId}:
+  /api/players/ban/{discordId}:
     put:
       summary: Ban a player
       tags:
@@ -151,7 +257,7 @@ paths:
       responses:
         '204':
           description: No content.
-  /players/unban/{discordId}:
+  /api/players/unban/{discordId}:
     put:
       summary: Unban a player
       tags:
